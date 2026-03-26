@@ -9,37 +9,53 @@ import comp3170.InputManager;
 
 public class Camera extends SceneObject {
 
-	private float zoom = 20.0f; // You'll need this when setting up your projection matrix...
+	private float zoom = 6.0f;   // smaller zoom so flowers are clearly visible
 	private Matrix4f projectionMatrix = new Matrix4f();
-	private Matrix4f viewMatrix = new Matrix4f();
-	
+
+	private int width = 800;
+	private int height = 800;
+
 	public Camera() {
-		
+		rebuildProjection();
 	}
-	
+
+	private void rebuildProjection() {
+		float aspect = (float) width / (float) height;
+
+		float halfHeight = zoom;
+		float halfWidth = zoom * aspect;
+
+		projectionMatrix.identity().ortho(
+			-halfWidth, halfWidth,
+			-halfHeight, halfHeight,
+			-10.0f, 10.0f
+		);
+	}
+
 	public void resize(int w, int h) {
-		//TODO: Change the projection matrix when the window is resized. (TASK 2)
+		width = w;
+		height = h;
+		rebuildProjection();
 	}
-	
+
 	public Matrix4f GetViewMatrix(Matrix4f dest) {
-		viewMatrix = getMatrix();
-		return viewMatrix.invert(dest);
+		return dest.set(getMatrix()).invert();
 	}
-	
+
 	public Matrix4f GetProjectionMatrix(Matrix4f dest) {
-		return projectionMatrix.invert(dest);
+		return dest.set(projectionMatrix);   // NOT invert
 	}
-	
-// TODO: Make the camera zoom in-and-out based on user input. (TASK 4)
-// You'll need to move some code around!
-	
+
 	public void update(InputManager input, float deltaTime) {
 		if (input.isKeyDown(GLFW_KEY_UP)) {
-			// TODO: Zoom the camera in
+			zoom -= 3.0f * deltaTime;
+			if (zoom < 1.5f) zoom = 1.5f;
+			rebuildProjection();
 		}
-			
+
 		if (input.isKeyDown(GLFW_KEY_DOWN)) {
-			// TODO: Zoom the camera out
+			zoom += 3.0f * deltaTime;
+			rebuildProjection();
 		}
 	}
 }
